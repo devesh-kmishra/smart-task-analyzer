@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from django.core.exceptions import ValidationError
 
 def has_circular_dependency(task_id, dependencies_map, visited=None, path=None):
     """
@@ -27,15 +26,6 @@ def has_circular_dependency(task_id, dependencies_map, visited=None, path=None):
 
     path.remove(task_id)
     return False
-
-# Usage in your view/serializer
-def validate_dependencies(self, task_id, new_dependencies, all_tasks):
-    # Build dependency map
-    dep_map = {t.id: list(t.dependencies) for t in all_tasks}
-    dep_map[task_id] = new_dependencies
-
-    if has_circular_dependency(task_id, dep_map):
-        raise ValidationError("Circular dependency detected")
 
 class TaskScorer:
     def __init__(self, urgency_weight=0.35, importance_weight=0.30,
@@ -65,7 +55,7 @@ class TaskScorer:
         
         return round(score, 2)
     
-    def calculate_urgency(self, due_date, importance):
+    def calculate_urgency(self, due_date, importance=5):
         """Calculate urgency based on due date (0-100)"""
         if not due_date:
             return 20  # Default for tasks without due date
@@ -128,7 +118,7 @@ class TaskScorer:
         """Generate human-readable explanation"""
         reasons = []
         
-        urgency = self.calculate_urgency(task.due_date)
+        urgency = self.calculate_urgency(task.due_date, task.importance)
         if urgency >= 95:
             reasons.append("due today or overdue")
         elif urgency >= 70:
@@ -148,7 +138,8 @@ class TaskScorer:
         
     def categorize_task(self, task):
         """Eisenhower Matrix categorization"""
-        is_urgent = task.urgency_score >= 70
+        urgency = self.calculate_urgency(task.due_date)
+        is_urgent = urgency >= 70
         is_important = task.importance >= 7
         
         if is_urgent and is_important:

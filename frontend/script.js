@@ -476,5 +476,238 @@ document
 // Set minimum date to today
 document.getElementById("dueDate").min = new Date().toISOString().split("T")[0];
 
+// Eisenhower Matrix
+document
+  .getElementById("showEisenhower")
+  .addEventListener("click", async () => {
+    const container = document.getElementById("eisenhowerMatrix");
+    const btn = document.getElementById("showEisenhower");
+
+    // Toggle visibility
+    if (!container.classList.contains("hidden")) {
+      container.classList.add("hidden");
+      btn.innerHTML = '<span class="btn-icon">🎯</span> Show Matrix View';
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/tasks/eisenhower_matrix/`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load matrix");
+      }
+
+      const matrix = await response.json();
+
+      // Build matrix HTML
+      container.innerHTML = `
+            <div class="eisenhower-grid">
+                <div class="eisenhower-quadrant quadrant-do-first">
+                    <h3>🔥 Do First (Urgent & Important)</h3>
+                    ${
+                      matrix.DO_FIRST.length > 0
+                        ? matrix.DO_FIRST.map(
+                            (task) => `
+                            <div class="eisenhower-task">
+                                <strong>${task.title}</strong>
+                                <small>Due: ${task.due_date} | Importance: ${task.importance}/10</small>
+                            </div>
+                        `
+                          ).join("")
+                        : '<div class="eisenhower-empty">No tasks in this quadrant</div>'
+                    }
+                </div>
+                
+                <div class="eisenhower-quadrant quadrant-schedule">
+                    <h3>📅 Schedule (Not Urgent but Important)</h3>
+                    ${
+                      matrix.SCHEDULE.length > 0
+                        ? matrix.SCHEDULE.map(
+                            (task) => `
+                            <div class="eisenhower-task">
+                                <strong>${task.title}</strong>
+                                <small>Due: ${task.due_date} | Importance: ${task.importance}/10</small>
+                            </div>
+                        `
+                          ).join("")
+                        : '<div class="eisenhower-empty">No tasks in this quadrant</div>'
+                    }
+                </div>
+                
+                <div class="eisenhower-quadrant quadrant-delegate">
+                    <h3>⚡ Delegate (Urgent but Not Important)</h3>
+                    ${
+                      matrix.DELEGATE.length > 0
+                        ? matrix.DELEGATE.map(
+                            (task) => `
+                            <div class="eisenhower-task">
+                                <strong>${task.title}</strong>
+                                <small>Due: ${task.due_date} | Importance: ${task.importance}/10</small>
+                            </div>
+                        `
+                          ).join("")
+                        : '<div class="eisenhower-empty">No tasks in this quadrant</div>'
+                    }
+                </div>
+                
+                <div class="eisenhower-quadrant quadrant-eliminate">
+                    <h3>🗑️ Eliminate (Not Urgent & Not Important)</h3>
+                    ${
+                      matrix.ELIMINATE.length > 0
+                        ? matrix.ELIMINATE.map(
+                            (task) => `
+                            <div class="eisenhower-task">
+                                <strong>${task.title}</strong>
+                                <small>Due: ${task.due_date} | Importance: ${task.importance}/10</small>
+                            </div>
+                        `
+                          ).join("")
+                        : '<div class="eisenhower-empty">No tasks in this quadrant</div>'
+                    }
+                </div>
+            </div>
+        `;
+
+      container.classList.remove("hidden");
+      btn.innerHTML = '<span class="btn-icon">🎯</span> Hide Matrix View';
+    } catch (error) {
+      console.error("Error:", error);
+      showError("❌ Failed to load Eisenhower Matrix");
+    } finally {
+      setLoading(false);
+    }
+  });
+
+// Dependency Graph
+document
+  .getElementById("showDependencies")
+  .addEventListener("click", async () => {
+    const container = document.getElementById("dependencyGraph");
+    const btn = document.getElementById("showDependencies");
+    const alert = document.getElementById("dependencyAlert");
+
+    // Toggle visibility
+    if (!container.classList.contains("hidden")) {
+      container.classList.add("hidden");
+      alert.classList.add("hidden");
+      btn.innerHTML = '<span class="btn-icon">🕸️</span> Show Dependencies';
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/tasks/dependency_graph/`);
+
+      if (!response.ok) {
+        throw new Error("Failed to load dependency graph");
+      }
+
+      const data = await response.json();
+
+      // Show alert if cycles detected
+      if (data.has_cycles) {
+        alert.classList.remove("hidden");
+      } else {
+        alert.classList.add("hidden");
+      }
+
+      if (data.nodes.length === 0) {
+        container.innerHTML =
+          '<div class="eisenhower-empty">No tasks with dependencies yet</div>';
+        container.classList.remove("hidden");
+        btn.innerHTML = '<span class="btn-icon">🕸️</span> Hide Dependencies';
+        setLoading(false);
+        return;
+      }
+
+      // Build graph HTML
+      let graphHTML = `
+            <div class="dependency-legend">
+                <div class="legend-item">
+                    <div class="legend-box normal"></div>
+                    <span>Normal Task</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box cycle"></div>
+                    <span>Circular Dependency</span>
+                </div>
+            </div>
+            <div class="dependency-graph">
+        `;
+
+      // Group edges by task
+      const taskDependencies = {};
+      data.edges.forEach((edge) => {
+        if (!taskDependencies[edge.to]) {
+          taskDependencies[edge.to] = [];
+        }
+        taskDependencies[edge.to].push(edge);
+      });
+
+      // Render nodes with their dependencies
+      data.nodes.forEach((node) => {
+        const dependencies = taskDependencies[node.id] || [];
+
+        graphHTML += `
+                <div class="dependency-node ${
+                  node.has_cycle ? "has-cycle" : ""
+                }">
+                    <div class="dependency-node-title">
+                        ${node.title}
+                        ${
+                          node.has_cycle
+                            ? '<span class="cycle-badge">⚠️ CYCLE</span>'
+                            : ""
+                        }
+                    </div>
+                    <div class="dependency-node-id">Task ID: ${node.id}</div>
+                    ${
+                      dependencies.length > 0
+                        ? `
+                        <div class="dependency-connections">
+                            <strong style="font-size: 12px; color: #666;">Depends on:</strong>
+                            ${dependencies
+                              .map((edge) => {
+                                const depNode = data.nodes.find(
+                                  (n) => n.id === edge.from
+                                );
+                                return `
+                                    <div class="dependency-arrow ${
+                                      edge.has_cycle ? "cycle-arrow" : ""
+                                    }">
+                                        ⬅️ ${
+                                          depNode
+                                            ? depNode.title
+                                            : "Task #" + edge.from
+                                        }
+                                        ${edge.has_cycle ? "(⚠️ circular)" : ""}
+                                    </div>
+                                `;
+                              })
+                              .join("")}
+                        </div>
+                    `
+                        : '<div style="margin-top: 10px; font-size: 13px; color: #999;">No dependencies</div>'
+                    }
+                </div>
+            `;
+      });
+
+      graphHTML += "</div>";
+
+      container.innerHTML = graphHTML;
+      container.classList.remove("hidden");
+      btn.innerHTML = '<span class="btn-icon">🕸️</span> Hide Dependencies';
+    } catch (error) {
+      console.error("Error:", error);
+      showError("❌ Failed to load dependency graph");
+    } finally {
+      setLoading(false);
+    }
+  });
+
 // Load tasks on page load
 loadTasks();

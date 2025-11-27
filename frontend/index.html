@@ -60,7 +60,7 @@
                   id="estimatedHours"
                   placeholder="e.g., 3"
                   step="0.5"
-                  min="0.1"
+                  min="0.5"
                   required
                 />
               </div>
@@ -91,14 +91,14 @@
               id="bulkJson"
               rows="10"
               placeholder='[
-  {
-    "title": "Fix login bug",
-    "due_date": "2025-11-30",
-    "estimated_hours": 3,
-    "importance": 8,
-    "dependencies": []
-  }
-]'
+                {
+                  "title": "Fix login bug",
+                  "due_date": "2025-11-30",
+                  "estimated_hours": 3,
+                  "importance": 8,
+                  "dependencies": []
+                }
+              ]'
             ></textarea>
             <button id="bulkSubmit" class="btn btn-primary">
               <span class="btn-icon">📦</span> Import Tasks
@@ -137,6 +137,28 @@
           <span class="btn-icon">💡</span> Get Suggestions
         </button>
         <div id="suggestionsList" class="suggestions-grid"></div>
+      </section>
+
+      <!-- Eisenhower Matrix -->
+      <section class="eisenhower-section">
+        <h2>📊 Eisenhower Matrix</h2>
+        <button id="showEisenhower" class="btn btn-secondary">
+          <span class="btn-icon">🎯</span> Show Matrix View
+        </button>
+        <div id="eisenhowerMatrix" class="eisenhower-container hidden"></div>
+      </section>
+
+      <!-- Dependency Graph -->
+      <section class="dependency-section">
+        <h2>🔗 Dependency Graph</h2>
+        <button id="showDependencies" class="btn btn-secondary">
+          <span class="btn-icon">🕸️</span> Show Dependencies
+        </button>
+        <div id="dependencyAlert" class="error-message hidden">
+          ⚠️ <strong>Circular dependency detected!</strong> Some tasks depend on
+          each other in a loop.
+        </div>
+        <div id="dependencyGraph" class="dependency-container hidden"></div>
       </section>
 
       <!-- All Tasks Display -->

@@ -492,3 +492,188 @@ textarea {
     justify-content: center;
   }
 }
+
+/* Eisenhower Matrix Styles */
+.eisenhower-container {
+  margin-top: 25px;
+}
+
+.eisenhower-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.eisenhower-quadrant {
+  padding: 20px;
+  border-radius: 10px;
+  min-height: 200px;
+}
+
+.eisenhower-quadrant h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quadrant-do-first {
+  background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+  border: 3px solid #ef5350;
+}
+
+.quadrant-schedule {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 3px solid #42a5f5;
+}
+
+.quadrant-delegate {
+  background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+  border: 3px solid #ffee58;
+}
+
+.quadrant-eliminate {
+  background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+  border: 3px solid #9ccc65;
+}
+
+.eisenhower-task {
+  background: white;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.eisenhower-task strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.eisenhower-task small {
+  color: #666;
+}
+
+.eisenhower-empty {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Dependency Graph Styles */
+.dependency-container {
+  margin-top: 25px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.dependency-graph {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 600px;
+}
+
+.dependency-node {
+  background: white;
+  padding: 15px 20px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.dependency-node.has-cycle {
+  border-left-color: #dc3545;
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+}
+
+.dependency-node-title {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.dependency-node-id {
+  font-size: 12px;
+  color: #999;
+}
+
+.dependency-connections {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.dependency-arrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.dependency-arrow.cycle-arrow {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.cycle-badge {
+  background: #dc3545;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.dependency-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.legend-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+.legend-box.normal {
+  background: #667eea;
+}
+
+.legend-box.cycle {
+  background: #dc3545;
+}
+
+@media (max-width: 768px) {
+  .eisenhower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dependency-graph {
+    min-width: auto;
+  }
+}
