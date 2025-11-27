@@ -1,4 +1,41 @@
-from datetime import date
+from datetime import date, timedelta
+from django.core.exceptions import ValidationError
+
+def has_circular_dependency(task_id, dependencies_map, visited=None, path=None):
+    """
+    Detect if adding a dependency would create a cycle.
+    dependencies_map: dict of {task_id: [list of dependency ids]}
+    """
+    if visited is None:
+        visited = set()
+    if path is None:
+        path = set()
+
+    if task_id in path:
+        return True  # Cycle detected!
+
+    if task_id in visited:
+        return False
+
+    visited.add(task_id)
+    path.add(task_id)
+
+    # Check all dependencies
+    for dep_id in dependencies_map.get(task_id, []):
+        if has_circular_dependency(dep_id, dependencies_map, visited, path):
+            return True
+
+    path.remove(task_id)
+    return False
+
+# Usage in your view/serializer
+def validate_dependencies(self, task_id, new_dependencies, all_tasks):
+    # Build dependency map
+    dep_map = {t.id: list(t.dependencies) for t in all_tasks}
+    dep_map[task_id] = new_dependencies
+
+    if has_circular_dependency(task_id, dep_map):
+        raise ValidationError("Circular dependency detected")
 
 class TaskScorer:
     def __init__(self, urgency_weight=0.35, importance_weight=0.30,
@@ -10,9 +47,13 @@ class TaskScorer:
     
     def calculate_priority_score(self, task, all_tasks):
         """Calculate overall priority score (0-100)"""
-        urgency = self.calculate_urgency(task.due_date)
-        importance = self.calculate_importance(task.importance)
-        effort = self.calculate_effort_score(task.estimated_hours)
+        due_date = task.due_date or (date.today() + timedelta(days=7))
+        importance = task.importance or 5
+        estimated_hours = task.estimated_hours or 2
+
+        urgency = self.calculate_urgency(due_date, importance)
+        importance = self.calculate_importance(importance)
+        effort = self.calculate_effort_score(estimated_hours)
         dependency = self.calculate_dependency_score(task, all_tasks)
         
         score = (
@@ -24,7 +65,7 @@ class TaskScorer:
         
         return round(score, 2)
     
-    def calculate_urgency(self, due_date):
+    def calculate_urgency(self, due_date, importance):
         """Calculate urgency based on due date (0-100)"""
         if not due_date:
             return 20  # Default for tasks without due date
@@ -34,7 +75,11 @@ class TaskScorer:
         
         # Overdue tasks
         if days_until_due < 0:
-            return 100
+            if importance >= 8:
+                return 100
+            if importance >= 5:
+                return 90
+            return 80
         
         # Due today
         if days_until_due == 0:
@@ -100,3 +145,17 @@ class TaskScorer:
             reasons.append(f"blocks {blocked_count} other task(s)")
         
         return " - ".join(reasons) if reasons else "good overall priority"
+        
+    def categorize_task(self, task):
+        """Eisenhower Matrix categorization"""
+        is_urgent = task.urgency_score >= 70
+        is_important = task.importance >= 7
+        
+        if is_urgent and is_important:
+            return "DO_FIRST"
+        elif not is_urgent and is_important:
+            return "SCHEDULE"
+        elif is_urgent and not is_important:
+            return "DELEGATE"  # Or reconsider
+        else:
+            return "ELIMINATE"  # Low priority

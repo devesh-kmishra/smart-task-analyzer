@@ -4,6 +4,156 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Smart Task Analyzer</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
-  <body></body>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header>
+        <h1>🎯 Smart Task Analyzer</h1>
+        <p>
+          Intelligent task prioritization based on urgency, importance, effort,
+          and dependencies
+        </p>
+      </header>
+
+      <!-- Input Section -->
+      <section class="input-section">
+        <h2>📝 Add Tasks</h2>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+          <button class="tab-btn active" data-tab="single">Single Task</button>
+          <button class="tab-btn" data-tab="bulk">Bulk JSON Input</button>
+        </div>
+
+        <!-- Single Task Form -->
+        <div id="singleTaskTab" class="tab-content active">
+          <form id="taskForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="title">Task Title *</label>
+                <input
+                  type="text"
+                  id="title"
+                  placeholder="e.g., Fix login bug"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="dueDate">Due Date *</label>
+                <input type="date" id="dueDate" required />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="estimatedHours">Estimated Hours *</label>
+                <input
+                  type="number"
+                  id="estimatedHours"
+                  placeholder="e.g., 3"
+                  step="0.5"
+                  min="0.1"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="importance">Importance (1-10) *</label>
+                <input
+                  type="number"
+                  id="importance"
+                  placeholder="e.g., 8"
+                  min="1"
+                  max="10"
+                  required
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              <span class="btn-icon">➕</span> Add Task
+            </button>
+          </form>
+        </div>
+
+        <!-- Bulk JSON Input -->
+        <div id="bulkTaskTab" class="tab-content">
+          <div class="bulk-input-wrapper">
+            <label for="bulkJson">Paste JSON Array of Tasks:</label>
+            <textarea
+              id="bulkJson"
+              rows="10"
+              placeholder='[
+  {
+    "title": "Fix login bug",
+    "due_date": "2025-11-30",
+    "estimated_hours": 3,
+    "importance": 8,
+    "dependencies": []
+  }
+]'
+            ></textarea>
+            <button id="bulkSubmit" class="btn btn-primary">
+              <span class="btn-icon">📦</span> Import Tasks
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Analysis Controls -->
+      <section class="analysis-section">
+        <h2>🔍 Analysis Strategy</h2>
+        <div class="strategy-controls">
+          <div class="strategy-selector">
+            <label for="sortStrategy">Sorting Strategy:</label>
+            <select id="sortStrategy">
+              <option value="smart">Smart Balance (Recommended)</option>
+              <option value="fastest">Fastest Wins (Low Effort First)</option>
+              <option value="impact">High Impact (Importance First)</option>
+              <option value="deadline">Deadline Driven (Due Date First)</option>
+            </select>
+          </div>
+          <button id="analyzeTasks" class="btn btn-analyze">
+            <span class="btn-icon">⚡</span> Analyze Tasks
+          </button>
+        </div>
+        <div class="strategy-info" id="strategyInfo">
+          <strong>Smart Balance:</strong> Balances urgency (35%), importance
+          (30%), effort (20%), and dependencies (15%)
+        </div>
+      </section>
+
+      <!-- Top Suggestions -->
+      <section class="suggestions">
+        <h2>⭐ Top 3 Recommended Tasks</h2>
+        <button id="getSuggestions" class="btn btn-secondary">
+          <span class="btn-icon">💡</span> Get Suggestions
+        </button>
+        <div id="suggestionsList" class="suggestions-grid"></div>
+      </section>
+
+      <!-- All Tasks Display -->
+      <section class="tasks">
+        <h2>📋 All Tasks</h2>
+        <div id="loadingIndicator" class="loading hidden">
+          <div class="spinner"></div>
+          <p>Analyzing tasks...</p>
+        </div>
+        <div id="errorMessage" class="error-message hidden"></div>
+        <div id="tasksList" class="tasks-grid"></div>
+        <div id="emptyState" class="empty-state hidden">
+          <p>📭 No tasks yet. Add your first task above!</p>
+        </div>
+      </section>
+    </div>
+
+    <script src="/static/script.js"></script>
+  </body>
 </html>

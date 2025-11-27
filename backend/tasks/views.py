@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from .models import Task
 from .serializers import TaskSerializer, TaskSuggestionSerializer
 from .scoring import TaskScorer
+from datetime import date
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
@@ -14,11 +15,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         """
         POST /api/tasks/analyze/
         Accepts list of tasks and returns them sorted by priority
+        Uses the Smart Balance strategy by default
         """
-        # Get all tasks (or use tasks from request if provided)
+        # Get all incomplete tasks
         tasks = Task.objects.filter(is_completed=False)
         
-        # Calculate scores
+        if not tasks.exists():
+            return Response([])
+        
+        # Calculate scores using Smart Balance algorithm
         scorer = TaskScorer()
         all_tasks_list = list(tasks)
         
@@ -26,7 +31,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             task.priority_score = scorer.calculate_priority_score(task, all_tasks_list)
             task.save()
         
-        # Sort by score
+        # Sort by score (highest first)
         sorted_tasks = sorted(all_tasks_list, key=lambda t: t.priority_score, reverse=True)
         
         serializer = TaskSerializer(sorted_tasks, many=True)
